@@ -560,25 +560,27 @@ function renderVoteTally(votes) {
   items.sort(function(a, b) { return b.count - a.count; });
 
   var maxCount = items[0].count || 0;
-  var maxBarPx = 120; // tallest bar in pixels
+  var maxBarPx = 150; // tallest bar in pixels
 
-  // Podium order: [2nd, 1st, 3rd] so winner is in the center
+  // Podium order: [2nd, 1st, 3rd] so winner is in center
   var order = [1, 0, 2];
+  var medals = ['🥇', '🥈', '🥉'];
   var barColors = [
-    'linear-gradient(180deg, rgba(255,215,0,0.65), rgba(255,215,0,0.2))',      // gold
-    'linear-gradient(180deg, rgba(192,192,192,0.6), rgba(192,192,192,0.15))',   // silver
-    'linear-gradient(180deg, rgba(205,127,50,0.6), rgba(205,127,50,0.15))'      // bronze
+    'linear-gradient(180deg, rgba(255,215,0,0.7), rgba(255,215,0,0.25))',       // gold (1st)
+    'linear-gradient(180deg, rgba(192,192,192,0.65), rgba(192,192,192,0.2))',    // silver (2nd)
+    'linear-gradient(180deg, rgba(205,127,50,0.65), rgba(205,127,50,0.2))'       // bronze (3rd)
   ];
 
   var html = '<div class="vote-podium">';
   for (var k = 0; k < order.length; k++) {
-    var idx = order[k]; // 0=1st,1=2nd,2=3rd rank
+    var idx = order[k]; // 0=1st, 1=2nd, 2=3rd rank
     if (idx >= items.length) continue;
     var item = items[idx];
     var barPx = maxCount > 0 ? Math.max(14, Math.round((item.count / maxCount) * maxBarPx)) : 14;
     var label = item.count === 1 ? '1 vote' : item.count + ' votes';
 
     html += '<div class="vote-pod-place">'
+      + '<div class="vote-pod-medal">' + medals[idx] + '</div>'
       + '<div class="vote-pod-img-wrap"><img src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '" class="vote-pod-img"></div>'
       + '<div class="vote-pod-name">' + escapeHtml(item.q.name) + '</div>'
       + '<div class="vote-pod-count">' + label + '</div>'

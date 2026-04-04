@@ -7,7 +7,7 @@
 var QUIZ_DATA = [
   {
     id: 1,
-    name: "The Dark Knight",
+    name: "Dark Knight",
     tagline: "A brooding scoop from the shadows...",
     image: "images/dark-knight.png",
     options: [
