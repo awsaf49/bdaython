@@ -1154,8 +1154,9 @@ body {
   .option-chip { padding: 9px 10px; }
   .option-chip .option-text { font-size: 0.82rem; }
 
-  .podium-place:nth-child(1) .podium-bar { height: 120px; }
-  .podium-place:nth-child(2) .podium-bar { height: 90px; }
+  /* Render order is [2nd, 1st, 3rd] — nth-child(2) is 1st place (tallest) */
+  .podium-place:nth-child(1) .podium-bar { height: 100px; }
+  .podium-place:nth-child(2) .podium-bar { height: 140px; }
   .podium-place:nth-child(3) .podium-bar { height: 68px; }
   .podium-bar { width: 72px; }
 
