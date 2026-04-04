@@ -717,32 +717,51 @@ function renderVoteTally(votes) {
   items.sort(function(a, b) { return b.count - a.count; });
 
   var maxCount = items[0].count || 0;
-  var maxBarPx = 150; // tallest bar in pixels
+  var maxBarPx = 150;
 
-  // Podium order: [2nd, 1st, 3rd] so winner is in center
+  // Compute actual ranks accounting for ties
+  // e.g. [3,3,1] → ranks [1,1,3]  |  [3,3,3] → [1,1,1]  |  [3,2,1] → [1,2,3]
+  var itemRanks = [1];
+  for (var r = 1; r < items.length; r++) {
+    itemRanks[r] = items[r].count === items[r - 1].count ? itemRanks[r - 1] : r + 1;
+  }
+
+  var MEDALS   = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  var ORDINALS  = { 1: '1st', 2: '2nd', 3: '3rd' };
+  var BAR_COLORS = {
+    1: 'linear-gradient(180deg, rgba(255,215,0,0.7),   rgba(255,215,0,0.25))',
+    2: 'linear-gradient(180deg, rgba(192,192,192,0.65),rgba(192,192,192,0.2))',
+    3: 'linear-gradient(180deg, rgba(205,127,50,0.65), rgba(205,127,50,0.2))'
+  };
+
+  // Podium order: [2nd-slot, 1st-slot, 3rd-slot] → center is tallest
+  // For a 3-way tie all bars are equal height so order doesn't matter visually
   var order = [1, 0, 2];
-  var medals  = ['🥇', '🥈', '🥉'];
-  var ranks   = ['1st', '2nd', '3rd'];
-  var barColors = [
-    'linear-gradient(180deg, rgba(255,215,0,0.7), rgba(255,215,0,0.25))',       // gold (1st)
-    'linear-gradient(180deg, rgba(192,192,192,0.65), rgba(192,192,192,0.2))',    // silver (2nd)
-    'linear-gradient(180deg, rgba(205,127,50,0.65), rgba(205,127,50,0.2))'       // bronze (3rd)
-  ];
 
   var html = '<div class="vote-podium">';
   for (var k = 0; k < order.length; k++) {
-    var idx = order[k]; // 0=1st, 1=2nd, 2=3rd rank
+    var idx  = order[k];
     if (idx >= items.length) continue;
     var item = items[idx];
+    var rank = itemRanks[idx];
+
+    // Tied items share the same bar height (proportional to their equal count)
     var barPx = maxCount > 0 ? Math.max(40, Math.round((item.count / maxCount) * maxBarPx)) : 40;
-    var label = item.count === 1 ? '1 vote' : item.count + ' votes';
+
+    // Is this item tied with any other?
+    var tied = items.some(function(other, j) { return j !== idx && other.count === item.count && item.count > 0; });
+
+    var medal     = MEDALS[rank]   || '🏅';
+    var rankLabel = tied ? 'TIE' : (ORDINALS[rank] || '-');
+    var barColor  = BAR_COLORS[rank] || BAR_COLORS[3];
+    var voteLabel = item.count === 1 ? '1 vote' : item.count + ' votes';
 
     html += '<div class="vote-pod-place">'
-      + '<div class="vote-pod-medal">' + medals[idx] + '</div>'
+      + '<div class="vote-pod-medal">' + medal + '</div>'
       + '<div class="vote-pod-img-wrap"><img src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '" class="vote-pod-img"></div>'
       + '<div class="vote-pod-name">' + escapeHtml(item.q.name) + '</div>'
-      + '<div class="vote-pod-count">' + label + '</div>'
-      + '<div class="vote-pod-bar" style="height:' + barPx + 'px;background:' + barColors[idx] + '">' + ranks[idx] + '</div>'
+      + '<div class="vote-pod-count">' + voteLabel + '</div>'
+      + '<div class="vote-pod-bar' + (tied ? ' tie-bar' : '') + '" style="height:' + barPx + 'px;background:' + barColor + '">' + rankLabel + '</div>'
       + '</div>';
   }
   html += '</div>';

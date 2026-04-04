@@ -900,6 +900,15 @@ body {
   text-align: center;
 }
 
+.vote-pod-bar.tie-bar {
+  animation: tiePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tiePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
 .vote-pod-bar {
   width: 80%;
   border-radius: 10px 10px 0 0;
