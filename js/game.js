@@ -20,6 +20,23 @@ var state = {
 };
 
 // ---- INIT ----
+// ---- BIRTHDAY EMOJI RAIN ----
+(function() {
+  var emojis = ['🎈','🎉','🎊','🎂','✨','🍦','⭐','🌟','🎁','🥳'];
+  var rain = document.getElementById('emoji-rain');
+  if (!rain) return;
+  for (var i = 0; i < 28; i++) {
+    var el = document.createElement('span');
+    el.className = 'emoji-float';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left            = (Math.random() * 100) + 'vw';
+    el.style.fontSize        = (0.9 + Math.random() * 1.4) + 'rem';
+    el.style.animationDuration  = (7 + Math.random() * 12) + 's';
+    el.style.animationDelay     = '-' + (Math.random() * 15) + 's'; // stagger immediately
+    rain.appendChild(el);
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
   // Try to restore player session
   var saved = localStorage.getItem('bdaython_' + SESSION_ID);

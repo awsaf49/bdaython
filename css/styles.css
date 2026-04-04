@@ -248,6 +248,20 @@ body {
      1px -1px 0 var(--poke-navy),
     -1px  1px 0 var(--poke-navy);
   margin-bottom: 8px;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% {
+    text-shadow: 3px 3px 0 var(--poke-navy), -1px -1px 0 var(--poke-navy),
+                 1px -1px 0 var(--poke-navy), -1px 1px 0 var(--poke-navy),
+                 0 0 30px rgba(232,184,0,0.25);
+  }
+  50% {
+    text-shadow: 3px 3px 0 var(--poke-navy), -1px -1px 0 var(--poke-navy),
+                 1px -1px 0 var(--poke-navy), -1px 1px 0 var(--poke-navy),
+                 0 0 60px rgba(232,184,0,0.7), 0 0 100px rgba(255,150,50,0.3);
+  }
 }
 
 .game-subtitle {
@@ -1363,8 +1377,55 @@ body {
 }
 
 /* ========================================
-   BIRTHDAY FOOTER
+   BIRTHDAY ELEMENTS
    ======================================== */
+
+/* Badge on join screen */
+.birthday-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(232,184,0,0.18), rgba(255,100,150,0.15));
+  border: 2px solid var(--poke-yellow);
+  border-radius: 50px;
+  padding: 8px 22px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--poke-yellow);
+  margin-bottom: 18px;
+  animation: badgePulse 2.5s ease-in-out infinite;
+  text-shadow: 0 0 16px rgba(232,184,0,0.4);
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(232,184,0,0.3), 0 0 24px rgba(232,184,0,0.1); }
+  50%       { box-shadow: 0 0 20px rgba(232,184,0,0.6), 0 0 50px rgba(232,184,0,0.2); transform: scale(1.02); }
+}
+
+/* Floating emoji rain */
+#emoji-rain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.emoji-float {
+  position: absolute;
+  bottom: -60px;
+  animation: floatUp linear infinite;
+  user-select: none;
+  will-change: transform;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 0;   }
+  8%   { opacity: 0.55; }
+  90%  { opacity: 0.55; }
+  100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+}
+
+/* Birthday footer — rainbow shimmer */
 .birthday-footer {
   position: fixed;
   bottom: 0;
@@ -1373,15 +1434,28 @@ body {
   z-index: 50;
   text-align: center;
   padding: 7px 16px;
-  background: rgba(10, 22, 40, 0.85);
+  background: rgba(10, 22, 40, 0.9);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(232, 184, 0, 0.25);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--poke-yellow);
-  letter-spacing: 0.04em;
+  border-top: 1px solid rgba(232, 184, 0, 0.35);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   pointer-events: none;
+}
+
+.birthday-footer span {
+  background: linear-gradient(90deg, #E8B800, #ff9f43, #ff6b9d, #4ecdc4, #E8B800);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbowScroll 5s linear infinite;
+}
+
+@keyframes rainbowScroll {
+  0%   { background-position: 0%   center; }
+  100% { background-position: 300% center; }
 }
 
 /* Give screens room above footer */
