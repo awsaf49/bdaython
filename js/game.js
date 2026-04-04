@@ -545,11 +545,9 @@ function submitFavorite() {
   db.ref('sessions/' + SESSION_ID + '/votes/' + state.playerId).set(favoriteSelected);
   db.ref('players/' + SESSION_ID + '/' + state.playerId + '/favorite').set(favoriteSelected);
 
-  var btn = document.getElementById('btn-vote');
-  btn.disabled = true;
-  btn.querySelector('span').textContent = 'Voted! 🎉';
-
-  setTimeout(showResults, 1500);
+  // Swap panels
+  document.getElementById('fav-pre').classList.add('hidden');
+  document.getElementById('fav-post').classList.remove('hidden');
 }
 
 function renderVoteTally(votes) {
