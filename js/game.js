@@ -564,7 +564,8 @@ function renderVoteTally(votes) {
 
   // Podium order: [2nd, 1st, 3rd] so winner is in center
   var order = [1, 0, 2];
-  var medals = ['🥇', '🥈', '🥉'];
+  var medals  = ['🥇', '🥈', '🥉'];
+  var ranks   = ['1st', '2nd', '3rd'];
   var barColors = [
     'linear-gradient(180deg, rgba(255,215,0,0.7), rgba(255,215,0,0.25))',       // gold (1st)
     'linear-gradient(180deg, rgba(192,192,192,0.65), rgba(192,192,192,0.2))',    // silver (2nd)
@@ -576,7 +577,7 @@ function renderVoteTally(votes) {
     var idx = order[k]; // 0=1st, 1=2nd, 2=3rd rank
     if (idx >= items.length) continue;
     var item = items[idx];
-    var barPx = maxCount > 0 ? Math.max(14, Math.round((item.count / maxCount) * maxBarPx)) : 14;
+    var barPx = maxCount > 0 ? Math.max(40, Math.round((item.count / maxCount) * maxBarPx)) : 40;
     var label = item.count === 1 ? '1 vote' : item.count + ' votes';
 
     html += '<div class="vote-pod-place">'
@@ -584,7 +585,7 @@ function renderVoteTally(votes) {
       + '<div class="vote-pod-img-wrap"><img src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '" class="vote-pod-img"></div>'
       + '<div class="vote-pod-name">' + escapeHtml(item.q.name) + '</div>'
       + '<div class="vote-pod-count">' + label + '</div>'
-      + '<div class="vote-pod-bar" style="height:' + barPx + 'px;background:' + barColors[idx] + '"></div>'
+      + '<div class="vote-pod-bar" style="height:' + barPx + 'px;background:' + barColors[idx] + '">' + ranks[idx] + '</div>'
       + '</div>';
   }
   html += '</div>';
