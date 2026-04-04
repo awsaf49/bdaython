@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>What's in the Scoop? — BDaython</title>
+  <meta name="description" content="A live ice cream ingredient guessing game!">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍦</text></svg>">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Firebase SDK (compat for no-build setup) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-gradient">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ========== PASSWORD MODAL ========== -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" onclick="closeHostModal()">&times;</button>
+      <div class="modal-icon">🔑</div>
+      <h2 class="modal-title">Host Login</h2>
+      <p class="modal-desc">Enter the host password to manage the game.</p>
+      <div class="modal-form">
+        <input
+          type="password"
+          id="host-password"
+          placeholder="Password..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div id="host-error" class="modal-error hidden">Wrong password. Try again.</div>
+        <button id="btn-host-login" class="btn-primary" onclick="attemptHostLogin()">
+          <span>Unlock</span>
+          <span class="btn-icon">🔓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: JOIN ========== -->
+  <div id="screen-join" class="screen active">
+    <div class="join-container">
+      <div class="join-hero">
+        <img src="images/remy-no-back.png" alt="Remy" class="remy-img">
+        <div class="logo-icon">🍦</div>
+      </div>
+      <h1 class="game-title">What's in the Scoop?</h1>
+      <p class="game-subtitle">Taste the ice cream &amp; guess the ingredients!</p>
+      <div class="how-to-play">
+        <div class="how-step">🍦 Pick which ingredients you think are in each scoop</div>
+        <div class="how-step">✅ <strong>+100</strong> per correct pick &nbsp;|&nbsp; ❌ <strong>−50</strong> per wrong pick</div>
+        <div class="how-step">⚡ Answer faster for a speed bonus — up to <strong>+500</strong> pts!</div>
+      </div>
+      <div class="join-form">
+        <input
+          type="text"
+          id="player-name"
+          placeholder="Enter your name..."
+          maxlength="20"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="btn-join" class="btn-primary">
+          <span>Join the Scoop!</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </div>
+      <div class="online-count">
+        <span class="pulse-dot"></span>
+        <span><span id="online-count">0</span> players online</span>
+      </div>
+      <!-- Host login trigger (subtle) -->
+      <button class="host-trigger" onclick="openHostModal()">🔑</button>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: HOST DASHBOARD ========== -->
+  <div id="screen-host" class="screen">
+    <div class="host-dashboard">
+      <div class="host-header">
+        <h1 class="host-title">🔑 Host Dashboard</h1>
+        <div class="host-actions">
+          <button id="btn-reveal" class="btn-reveal" onclick="revealIngredients()">🍦 Reveal Ingredients</button>
+          <button id="btn-reset" class="btn-reset" onclick="confirmReset()">🗑️ Reset Game</button>
+        </div>
+      </div>
+
+      <div class="host-stats">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-players">0</div>
+          <div class="stat-label">Players</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-finished">0</div>
+          <div class="stat-label">Finished</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-revealed">No</div>
+          <div class="stat-label">Revealed</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">🏆 Live Leaderboard</h2>
+      <div class="full-leaderboard" id="host-leaderboard">
+        <div class="lb-empty">Waiting for players...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: GAME ========== -->
+  <div id="screen-game" class="screen">
+    <div class="game-layout">
+      <!-- Main Question Area -->
+      <div class="game-main">
+        <div class="question-header">
+          <div class="question-badge">
+            <span id="q-num">1</span><span class="q-total">/3</span>
+          </div>
+          <div class="timer" id="timer">
+            <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span id="timer-display">0:00</span>
+          </div>
+        </div>
+
+        <div class="ice-cream-card">
+          <div class="ice-cream-image-wrap">
+            <img id="ice-cream-img" src="" alt="Mystery Ice Cream" class="ice-cream-image">
+          </div>
+          <h2 id="ice-cream-name" class="ice-cream-name"></h2>
+          <p id="ice-cream-tagline" class="ice-cream-tagline"></p>
+        </div>
+
+        <p class="pick-label">Pick the ingredients you think are in this scoop:</p>
+
+        <div class="options-grid" id="options-grid">
+          <!-- Populated by JS -->
+        </div>
+
+        <button id="btn-submit" class="btn-primary btn-submit" disabled>
+          <span>Submit Answer</span>
+          <span class="btn-icon">✓</span>
+        </button>
+      </div>
+
+      <!-- Sidebar Leaderboard -->
+      <div class="game-sidebar">
+        <h3 class="sidebar-title">🏆 Live Scores</h3>
+        <div id="mini-leaderboard" class="leaderboard-list">
+          <div class="lb-empty">Waiting for players...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: TRANSITION ========== -->
+  <div id="screen-transition" class="screen">
+    <div class="transition-container">
+      <div class="transition-icon">🍦</div>
+      <h2 class="transition-text" id="transition-text">Submitted!</h2>
+      <p class="transition-sub" id="transition-sub">Next scoop coming up...</p>
+      <div class="transition-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: RESULTS ========== -->
+  <div id="screen-results" class="screen">
+    <div class="results-container">
+      <h1 class="results-title">🏆 Final Results</h1>
+
+      <!-- Podium -->
+      <div class="podium" id="podium"></div>
+
+      <!-- Full Leaderboard -->
+      <h2 class="section-title">Leaderboard</h2>
+      <div class="full-leaderboard" id="full-leaderboard"></div>
+
+      <!-- Answer Reveals (hidden until host reveals) -->
+      <h2 class="section-title" id="reveals-title">🍦 The Secret Ingredients</h2>
+      <div class="reveals" id="reveals"></div>
+
+      <!-- Play Again -->
+      <button id="btn-play-again" class="btn-secondary" onclick="location.reload()">
+        Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Birthday Footer -->
+  <div class="birthday-footer">🎂 Awsaf's Birthday Party!</div>
+
+  <!-- Scripts (order matters) -->
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

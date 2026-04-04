@@ -1,0 +1,678 @@
+// ============================================
+// GAME — State machine, timer, host mode
+// Correct answers are encrypted — only the host
+// password can decrypt them.
+// ============================================
+
+// ---- STATE ----
+var state = {
+  playerId: null,
+  playerName: '',
+  sessionId: SESSION_ID,
+  currentQuestion: 0,
+  answers: {},
+  scores: {},
+  totalScore: 0,
+  questionStartTime: null,
+  timerInterval: null,
+  revealed: false,
+  isHost: false
+};
+
+// ---- INIT ----
+document.addEventListener('DOMContentLoaded', function() {
+  // Try to restore player session
+  var saved = localStorage.getItem('bdaython_' + SESSION_ID);
+  if (saved) {
+    try {
+      var data = JSON.parse(saved);
+      state.playerId = data.playerId;
+      state.playerName = data.playerName;
+      state.answers = data.answers || {};
+
+      db.ref('players/' + SESSION_ID + '/' + state.playerId).once('value', function(snap) {
+        if (snap.exists()) {
+          var fbData = snap.val();
+          state.currentQuestion = fbData.currentQuestion || 0;
+          state.totalScore = fbData.totalScore || 0;
+          if (state.currentQuestion >= QUIZ_DATA.length) {
+            showResults();
+          } else {
+            showQuestion(state.currentQuestion);
+          }
+        } else {
+          clearSession();
+          showScreen('screen-join');
+        }
+      });
+    } catch (e) {
+      clearSession();
+      showScreen('screen-join');
+    }
+  } else {
+    showScreen('screen-join');
+  }
+
+  // Start leaderboard listener
+  initLeaderboard(SESSION_ID);
+
+  // Watch for reveal toggle (host can turn on/off)
+  db.ref('sessions/' + SESSION_ID + '/revealed').on('value', function(snap) {
+    if (snap.val() === true) {
+      state.revealed = true;
+      onRevealed();
+    } else {
+      state.revealed = false;
+      onHidden();
+    }
+  });
+
+  // Event listeners
+  document.getElementById('btn-join').addEventListener('click', joinGame);
+  document.getElementById('player-name').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') joinGame();
+  });
+  document.getElementById('btn-submit').addEventListener('click', submitAnswer);
+  document.getElementById('host-password').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') attemptHostLogin();
+  });
+});
+
+// ---- SCREENS ----
+function showScreen(screenId) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) {
+    screens[i].classList.remove('active');
+  }
+  document.getElementById(screenId).classList.add('active');
+}
+
+// ========================================
+// HOST MODE — Password + Decryption
+// ========================================
+
+function openHostModal() {
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  document.getElementById('host-password').focus();
+  document.getElementById('host-error').classList.add('hidden');
+}
+
+function closeHostModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  document.getElementById('host-password').value = '';
+}
+
+async function attemptHostLogin() {
+  var password = document.getElementById('host-password').value;
+  if (!password) return;
+
+  var errorEl = document.getElementById('host-error');
+  var btn = document.getElementById('btn-host-login');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Checking...';
+
+  try {
+    var ok = await verifyPassword(password);
+    if (!ok) throw new Error('wrong');
+    state.isHost = true;
+    closeHostModal();
+    activateHostMode();
+  } catch (e) {
+    errorEl.classList.remove('hidden');
+    errorEl.textContent = 'Wrong password. Try again.';
+    document.getElementById('host-password').value = '';
+    document.getElementById('host-password').focus();
+  }
+
+  btn.disabled = false;
+  btn.querySelector('span').textContent = 'Unlock';
+}
+
+// SHA-256 hash of host password "5233"
+var HOST_PASSWORD_HASH = 'b912b4176482e0c602e840af42e2b57af77c33cde2630cdc1467c5a9665af986';
+
+async function verifyPassword(password) {
+  var encoded = new TextEncoder().encode(password);
+  var hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  var hashArray = Array.from(new Uint8Array(hashBuffer));
+  var hashHex = hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  return hashHex === HOST_PASSWORD_HASH;
+}
+
+// ---- HOST DASHBOARD ----
+function activateHostMode() {
+  showScreen('screen-host');
+  watchAndScoreSubmissions();
+
+  // Sync reveal state for host
+  db.ref('sessions/' + SESSION_ID + '/revealed').on('value', function(snap) {
+    state.revealed = snap.val() === true;
+    if (state.revealed) markAsRevealed();
+    else markAsHidden();
+  });
+}
+
+function watchAndScoreSubmissions() {
+  // Scoring is now instant client-side — host dashboard just watches progress
+  var playersRef = db.ref('players/' + SESSION_ID);
+
+  playersRef.on('value', function(snap) {
+    var data = snap.val();
+    if (!data) {
+      updateHostStats(0, 0);
+      renderHostLeaderboard([]);
+      return;
+    }
+
+    var players = [];
+    var finished = 0;
+
+    Object.keys(data).forEach(function(id) {
+      var p = data[id];
+      if ((p.currentQuestion || 0) >= QUIZ_DATA.length) finished++;
+      players.push({
+        id: id,
+        name: p.name || 'Anonymous',
+        totalScore: p.totalScore || 0,
+        currentQuestion: p.currentQuestion || 0,
+        joinedAt: p.joinedAt || 0,
+        picks: p.picks || {}
+      });
+    });
+
+    players.sort(function(a, b) {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      return a.joinedAt - b.joinedAt;
+    });
+
+    updateHostStats(players.length, finished);
+    renderHostLeaderboard(players);
+  });
+}
+
+function calculateScore(selected, correct, timeTaken) {
+  var correctPicks = 0;
+  var wrongPicks = 0;
+  for (var i = 0; i < selected.length; i++) {
+    if (correct.indexOf(selected[i]) >= 0) correctPicks++;
+    else wrongPicks++;
+  }
+  var baseScore = (correctPicks * SCORING.CORRECT_PICK) + (wrongPicks * SCORING.WRONG_PICK);
+  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * 10));
+  return Math.max(0, baseScore + timeBonus);
+}
+
+function updateHostStats(total, finished) {
+  document.getElementById('stat-players').textContent = total;
+  document.getElementById('stat-finished').textContent = finished;
+}
+
+function renderHostLeaderboard(players) {
+  var container = document.getElementById('host-leaderboard');
+  if (!container) return;
+
+  if (players.length === 0) {
+    container.innerHTML = '<div class="lb-empty">Waiting for players...</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < players.length; i++) {
+    var p = players[i];
+    var statusText = p.currentQuestion >= QUIZ_DATA.length
+      ? 'Finished' : 'Q' + (p.currentQuestion + 1) + '/' + QUIZ_DATA.length;
+
+    html += '<div class="lb-row host-lb-row" onclick="showHostPlayerDetail(\'' + p.id + '\')">'
+      + '<span class="lb-rank">' + (i + 1) + '</span>'
+      + '<span class="lb-name">' + escapeHtml(p.name) + '</span>'
+      + '<span class="lb-status">' + statusText + '</span>'
+      + '<span class="lb-score">' + p.totalScore + '</span>'
+      + '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function showHostPlayerDetail(playerId) {
+  // Host can always see picks vs correct (they have the answers)
+  db.ref('players/' + SESSION_ID + '/' + playerId).once('value', function(snap) {
+    var p = snap.val();
+    if (!p) return;
+
+    var html = '<div class="modal-player-name">' + escapeHtml(p.name) + '</div>';
+
+    for (var qi = 0; qi < QUIZ_DATA.length; qi++) {
+      var q = QUIZ_DATA[qi];
+      var qKey = 'q' + qi;
+      var picks = (p.picks && p.picks[qKey]) || [];
+      var correct = QUIZ_DATA[qi].correct || [];
+
+      html += '<div class="reveal-card">'
+        + '<div class="reveal-header">'
+        + '<img class="reveal-img" src="' + q.image + '" alt="' + escapeHtml(q.name) + '">'
+        + '<div><div class="reveal-name">' + escapeHtml(q.name) + '</div>'
+        + '<div style="color:var(--text-muted);font-size:0.85rem">'
+        + ((p.scores && p.scores[qKey]) || 0) + ' pts</div></div>'
+        + '</div><div class="reveal-ingredients">';
+
+      for (var j = 0; j < q.options.length; j++) {
+        var opt = q.options[j];
+        var isCorrect = correct.indexOf(opt) >= 0;
+        var isPicked = picks.indexOf(opt) >= 0;
+        var cls = isCorrect && isPicked ? 'correct-picked'
+          : isCorrect && !isPicked ? 'correct-missed'
+          : !isCorrect && isPicked ? 'wrong-picked'
+          : 'not-picked';
+        html += '<span class="reveal-chip ' + cls + '">' + escapeHtml(opt) + '</span>';
+      }
+
+      html += '</div></div>';
+    }
+
+    showDetailModal(html);
+  });
+}
+
+function showDetailModal(contentHtml) {
+  // Reuse the modal overlay
+  var overlay = document.getElementById('modal-overlay');
+  var modal = overlay.querySelector('.modal');
+  var prevContent = modal.innerHTML;
+
+  modal.innerHTML = '<button class="modal-close" onclick="closeDetailModal()">&times;</button>'
+    + '<div class="modal-detail-content">' + contentHtml + '</div>';
+  overlay.classList.remove('hidden');
+
+  // Store previous content to restore later
+  modal.setAttribute('data-prev', prevContent);
+}
+
+function closeDetailModal() {
+  var overlay = document.getElementById('modal-overlay');
+  var modal = overlay.querySelector('.modal');
+  overlay.classList.add('hidden');
+
+  // Restore original modal content
+  var prev = modal.getAttribute('data-prev');
+  if (prev) {
+    modal.innerHTML = prev;
+    modal.removeAttribute('data-prev');
+  }
+}
+
+// ---- REVEAL TOGGLE ----
+function revealIngredients() {
+  if (state.revealed) {
+    // Hide ingredients
+    db.ref('sessions/' + SESSION_ID).update({ revealed: false });
+    state.revealed = false;
+    markAsHidden();
+  } else {
+    // Reveal ingredients
+    if (!confirm('Reveal all correct ingredients to participants?')) return;
+    db.ref('sessions/' + SESSION_ID).update({ revealed: true });
+    state.revealed = true;
+    markAsRevealed();
+  }
+}
+
+function markAsRevealed() {
+  var btn = document.getElementById('btn-reveal');
+  if (btn) {
+    btn.textContent = '🙈 Hide Ingredients';
+    btn.classList.add('revealed');
+  }
+  var stat = document.getElementById('stat-revealed');
+  if (stat) stat.textContent = 'Yes';
+}
+
+function markAsHidden() {
+  var btn = document.getElementById('btn-reveal');
+  if (btn) {
+    btn.textContent = '🍦 Reveal Ingredients';
+    btn.classList.remove('revealed');
+  }
+  var stat = document.getElementById('stat-revealed');
+  if (stat) stat.textContent = 'No';
+}
+
+function confirmReset() {
+  if (!confirm('Delete ALL player data and reset the game?')) return;
+  if (!confirm('This cannot be undone. Are you sure?')) return;
+
+  db.ref('players/' + SESSION_ID).remove();
+  db.ref('sessions/' + SESSION_ID).remove();
+}
+
+// ========================================
+// PARTICIPANT FLOW
+// ========================================
+
+function joinGame() {
+  var nameInput = document.getElementById('player-name');
+  var name = nameInput.value.trim();
+  if (!name) {
+    nameInput.focus();
+    nameInput.style.borderColor = 'var(--wrong)';
+    setTimeout(function() { nameInput.style.borderColor = ''; }, 1000);
+    return;
+  }
+
+  state.playerName = name;
+  state.playerId = generateId();
+  state.currentQuestion = 0;
+  state.answers = {};
+  state.totalScore = 0;
+
+  db.ref('players/' + SESSION_ID + '/' + state.playerId).set({
+    name: state.playerName,
+    picks: {},
+    times: {},
+    scores: {},
+    totalScore: 0,
+    currentQuestion: 0,
+    joinedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  saveSession();
+  showQuestion(0);
+}
+
+function showQuestion(index) {
+  if (index >= QUIZ_DATA.length) {
+    showResults();
+    return;
+  }
+
+  state.currentQuestion = index;
+  var q = QUIZ_DATA[index];
+
+  document.getElementById('q-num').textContent = index + 1;
+  document.getElementById('ice-cream-img').src = q.image;
+  document.getElementById('ice-cream-img').alt = q.name;
+  document.getElementById('ice-cream-name').textContent = q.name;
+  document.getElementById('ice-cream-tagline').textContent = q.tagline;
+
+  renderOptions(q.options);
+
+  var submitBtn = document.getElementById('btn-submit');
+  submitBtn.disabled = true;
+  submitBtn.querySelector('span').textContent = 'Submit Answer';
+
+  startTimer();
+  showScreen('screen-game');
+}
+
+function renderOptions(options) {
+  var grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+
+  for (var i = 0; i < options.length; i++) {
+    var chip = document.createElement('div');
+    chip.className = 'option-chip';
+    chip.setAttribute('data-option', options[i]);
+    chip.innerHTML = '<span class="check-box"></span>'
+      + '<span class="option-text">' + escapeHtml(options[i]) + '</span>';
+    chip.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      updateSubmitButton();
+    });
+    grid.appendChild(chip);
+  }
+}
+
+function updateSubmitButton() {
+  var selected = document.querySelectorAll('.option-chip.selected');
+  document.getElementById('btn-submit').disabled = (selected.length === 0);
+}
+
+// ---- TIMER ----
+function startTimer() {
+  stopTimer();
+  state.questionStartTime = Date.now();
+  updateTimerDisplay(0);
+  state.timerInterval = setInterval(function() {
+    var elapsed = Math.floor((Date.now() - state.questionStartTime) / 1000);
+    updateTimerDisplay(elapsed);
+  }, 1000);
+}
+
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+function updateTimerDisplay(seconds) {
+  var mins = Math.floor(seconds / 60);
+  var secs = seconds % 60;
+  document.getElementById('timer-display').textContent =
+    mins + ':' + (secs < 10 ? '0' : '') + secs;
+}
+
+// ---- SUBMIT — score calculated instantly client-side ----
+function submitAnswer() {
+  stopTimer();
+
+  var q = QUIZ_DATA[state.currentQuestion];
+  var selectedEls = document.querySelectorAll('.option-chip.selected');
+  var selected = [];
+  for (var i = 0; i < selectedEls.length; i++) {
+    selected.push(selectedEls[i].getAttribute('data-option'));
+  }
+
+  var timeTaken = (Date.now() - state.questionStartTime) / 1000;
+  var qKey = 'q' + state.currentQuestion;
+
+  // Score immediately — no host needed
+  var score = calculateScore(selected, q.correct, timeTaken);
+  state.answers[qKey] = selected;
+  state.scores = state.scores || {};
+  state.scores[qKey] = score;
+  state.totalScore = Object.keys(state.scores).reduce(function(sum, k) {
+    return sum + state.scores[k];
+  }, 0);
+
+  var updates = {};
+  updates['picks/' + qKey]   = selected;
+  updates['times/' + qKey]   = Math.round(timeTaken * 10) / 10;
+  updates['scores/' + qKey]  = score;
+  updates['totalScore']      = state.totalScore;
+  updates['currentQuestion'] = state.currentQuestion + 1;
+  db.ref('players/' + SESSION_ID + '/' + state.playerId).update(updates);
+
+  saveSession();
+  showTransition();
+}
+
+// ---- TRANSITION ----
+function showTransition() {
+  var nextQ = state.currentQuestion + 1;
+  var isLast = (nextQ >= QUIZ_DATA.length);
+
+  document.getElementById('transition-text').textContent =
+    isLast ? 'All done!' : 'Submitted!';
+  document.getElementById('transition-sub').textContent =
+    isLast ? 'Waiting for final results...' : 'Next scoop coming up...';
+
+  showScreen('screen-transition');
+
+  setTimeout(function() {
+    if (isLast) {
+      showResults();
+    } else {
+      showQuestion(nextQ);
+    }
+  }, 1800);
+}
+
+// ---- RESULTS ----
+function showResults() {
+  showScreen('screen-results');
+  renderPodium(cachedPlayers);
+  renderFullLeaderboard(cachedPlayers);
+
+  if (state.revealed) {
+    onRevealed();
+  } else {
+    document.getElementById('reveals-title').style.display = 'none';
+    document.getElementById('reveals').innerHTML =
+      '<div class="reveal-waiting">'
+      + '<div class="reveal-waiting-icon">🔒</div>'
+      + '<p>The host will reveal the secret ingredients soon...</p>'
+      + '</div>';
+  }
+
+  setTimeout(launchConfetti, 600);
+}
+
+// ---- REVEAL / HIDE (for participants) ----
+function onRevealed() {
+  if (!document.getElementById('screen-results').classList.contains('active')) return;
+  document.getElementById('reveals-title').style.display = '';
+  // Build answers map from QUIZ_DATA (source of truth)
+  var answers = {};
+  for (var i = 0; i < QUIZ_DATA.length; i++) {
+    answers['q' + i] = QUIZ_DATA[i].correct;
+  }
+  renderReveals(answers);
+}
+
+function onHidden() {
+  if (!document.getElementById('screen-results').classList.contains('active')) return;
+  document.getElementById('reveals-title').style.display = 'none';
+  document.getElementById('reveals').innerHTML =
+    '<div class="reveal-waiting">'
+    + '<div class="reveal-waiting-icon">🔒</div>'
+    + '<p>The host will reveal the secret ingredients soon...</p>'
+    + '</div>';
+}
+
+function renderReveals(answers) {
+  var container = document.getElementById('reveals');
+  var html = '';
+
+  for (var i = 0; i < QUIZ_DATA.length; i++) {
+    var q = QUIZ_DATA[i];
+    var qKey = 'q' + i;
+
+    // Safety: ensure arrays (Firebase can return array-like objects)
+    var rawCorrect = answers[qKey] || [];
+    var correct = Array.isArray(rawCorrect) ? rawCorrect : Object.values(rawCorrect);
+
+    var rawPicks = state.answers[qKey] || [];
+    var myPicks = Array.isArray(rawPicks) ? rawPicks : Object.values(rawPicks);
+
+    html += '<div class="reveal-card">'
+      + '<div class="reveal-header">'
+      + '<img class="reveal-img" src="' + q.image + '" alt="' + escapeHtml(q.name) + '">'
+      + '<div><div class="reveal-name">' + escapeHtml(q.name) + '</div></div>'
+      + '</div>'
+      + '<div class="reveal-ingredients">';
+
+    // Only show relevant chips: correct ones + wrong picks (skip wrong-and-not-picked noise)
+    for (var j = 0; j < q.options.length; j++) {
+      var opt = q.options[j];
+      var isCorrect = correct.indexOf(opt) >= 0;
+      var isPicked = myPicks.indexOf(opt) >= 0;
+
+      if (!isCorrect && !isPicked) continue; // skip irrelevant options
+
+      var cls = isCorrect && isPicked ? 'correct-picked'
+        : isCorrect && !isPicked     ? 'correct-missed'
+        : 'wrong-picked';            // !isCorrect && isPicked
+
+      html += '<span class="reveal-chip ' + cls + '">' + escapeHtml(opt) + '</span>';
+    }
+
+    html += '</div>'
+      + '<div class="reveal-legend">'
+      + '<span class="legend-item">✅ Got it</span>'
+      + '<span class="legend-item">🔶 Missed</span>'
+      + '<span class="legend-item">❌ Wrong pick</span>'
+      + '</div></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ---- CONFETTI ----
+function launchConfetti() {
+  var canvas = document.getElementById('confetti-canvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  var pieces = [];
+  var colors = ['#ff6b9d', '#4ecdc4', '#ffeaa7', '#ffd700', '#c44dff', '#ff6b6b'];
+
+  for (var i = 0; i < 120; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 2,
+      rot: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10,
+      opacity: 1
+    });
+  }
+
+  var startTime = Date.now();
+  var duration = 4000;
+
+  function animate() {
+    var elapsed = Date.now() - startTime;
+    if (elapsed > duration) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var fadeStart = duration * 0.7;
+    for (var i = 0; i < pieces.length; i++) {
+      var p = pieces[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.rotSpeed;
+      p.vy += 0.05;
+      if (elapsed > fadeStart) {
+        p.opacity = Math.max(0, 1 - (elapsed - fadeStart) / (duration - fadeStart));
+      }
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ---- HELPERS ----
+function generateId() {
+  return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+function saveSession() {
+  localStorage.setItem('bdaython_' + SESSION_ID, JSON.stringify({
+    playerId: state.playerId,
+    playerName: state.playerName,
+    answers: state.answers
+  }));
+}
+
+function clearSession() {
+  localStorage.removeItem('bdaython_' + SESSION_ID);
+  state.playerId = null;
+  state.playerName = '';
+  state.currentQuestion = 0;
+  state.answers = {};
+  state.scores = {};
+  state.totalScore = 0;
+}
