@@ -9,7 +9,7 @@ var QUIZ_DATA = [
     id: 1,
     name: "The Dark Knight",
     tagline: "A brooding scoop from the shadows...",
-    image: "images/ice1.png",
+    image: "images/dark-knight.png",
     options: [
       "Coconut Milk", "Chocolate Bar", "Vegan Butter", "Salt",
       "Cinnamon", "Vanilla Extract", "Cocoa Powder", "Heavy Cream",
@@ -21,7 +21,7 @@ var QUIZ_DATA = [
     id: 2,
     name: "Snow White",
     tagline: "The fairest scoop of them all...",
-    image: "images/ice2.png",
+    image: "images/snow-white.png",
     options: [
       "Coconut Milk", "Salt", "Vanilla Extract", "Saffron",
       "Oreo", "Heavy Cream", "Sugar", "Vegan Butter",
@@ -33,7 +33,7 @@ var QUIZ_DATA = [
     id: 3,
     name: "Spongebob",
     tagline: "Who lives in a pineapple under the sea...",
-    image: "images/ice3.png",
+    image: "images/sponge-bob.png",
     options: [
       "Oat Milk", "Salt", "Vanilla Extract", "Mango",
       "Lime", "Coconut Milk", "Sugar", "Coconut Cream",
