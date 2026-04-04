@@ -198,7 +198,7 @@ function calculateScore(selected, correct, timeTaken) {
     else wrongPicks++;
   }
   var baseScore = (correctPicks * SCORING.CORRECT_PICK) + (wrongPicks * SCORING.WRONG_PICK);
-  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * 10));
+  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * 2));
   return Math.max(0, baseScore + timeBonus);
 }
 

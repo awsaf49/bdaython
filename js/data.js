@@ -45,7 +45,7 @@ var QUIZ_DATA = [
 
 // Scoring constants
 var SCORING = {
-  CORRECT_PICK: 100,
-  WRONG_PICK: -50,
-  TIME_BONUS_MAX: 500
+  CORRECT_PICK: 200,
+  WRONG_PICK: -100,
+  TIME_BONUS_MAX: 100
 };
