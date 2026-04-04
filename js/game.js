@@ -524,11 +524,6 @@ function showFavoriteVote() {
   document.getElementById('btn-vote').disabled = true;
   document.getElementById('btn-vote').querySelector('span').textContent = 'Cast My Vote!';
 
-  // Live vote tally
-  db.ref('sessions/' + SESSION_ID + '/votes').on('value', function(snap) {
-    renderVoteTally(snap.val() || {});
-  });
-
   showScreen('screen-favorite');
 }
 
@@ -545,11 +540,7 @@ function submitFavorite() {
   db.ref('sessions/' + SESSION_ID + '/votes/' + state.playerId).set(favoriteSelected);
   db.ref('players/' + SESSION_ID + '/' + state.playerId + '/favorite').set(favoriteSelected);
 
-  var btn = document.getElementById('btn-vote');
-  btn.disabled = true;
-  btn.querySelector('span').textContent = 'Voted! 🎉';
-
-  setTimeout(showResults, 800);
+  showResults();
 }
 
 function renderVoteTally(votes) {
