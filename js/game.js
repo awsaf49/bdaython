@@ -545,9 +545,11 @@ function submitFavorite() {
   db.ref('sessions/' + SESSION_ID + '/votes/' + state.playerId).set(favoriteSelected);
   db.ref('players/' + SESSION_ID + '/' + state.playerId + '/favorite').set(favoriteSelected);
 
-  // Swap panels
-  document.getElementById('fav-pre').classList.add('hidden');
-  document.getElementById('fav-post').classList.remove('hidden');
+  var btn = document.getElementById('btn-vote');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Voted! 🎉';
+
+  setTimeout(showResults, 800);
 }
 
 function renderVoteTally(votes) {
@@ -591,6 +593,11 @@ function showResults() {
   showScreen('screen-results');
   renderPodium(cachedPlayers);
   renderFullLeaderboard(cachedPlayers);
+
+  // Live vote tally
+  db.ref('sessions/' + SESSION_ID + '/votes').on('value', function(snap) {
+    renderVoteTally(snap.val() || {});
+  });
 
   if (state.revealed) {
     onRevealed();

@@ -188,47 +188,44 @@
 
   <!-- ========== SCREEN: FAVOURITE VOTE ========== -->
   <div id="screen-favorite" class="screen">
-    <div class="favorite-container" id="fav-container">
-
-      <!-- PRE-VOTE: pick your scoop -->
-      <div id="fav-pre">
-        <h2 class="fav-title">Which scoop was your favorite? 🍦</h2>
-        <p class="fav-subtitle">Vote for your top pick!</p>
-        <div class="fav-grid" id="fav-grid"></div>
-        <button id="btn-vote" class="btn-primary btn-submit" disabled onclick="submitFavorite()">
-          <span>Cast My Vote!</span>
-          <span class="btn-icon">🍦</span>
-        </button>
-      </div>
-
-      <!-- POST-VOTE: popular flavor leaderboard -->
-      <div id="fav-post" class="hidden">
-        <h2 class="fav-title">🏆 Popular Flavor</h2>
-        <p class="fav-subtitle">Here's what everyone picked!</p>
-        <div id="vote-tally" class="vote-tally"></div>
-        <button class="btn-primary btn-submit" style="margin-top:28px" onclick="showResults()">
-          <span>See Final Scores</span>
-          <span class="btn-icon">→</span>
-        </button>
-      </div>
-
+    <div class="favorite-container">
+      <h2 class="fav-title">Which scoop was your favorite? 🍦</h2>
+      <p class="fav-subtitle">Vote for your top pick!</p>
+      <div class="fav-grid" id="fav-grid"></div>
+      <button id="btn-vote" class="btn-primary btn-submit" disabled onclick="submitFavorite()">
+        <span>Cast My Vote!</span>
+        <span class="btn-icon">🍦</span>
+      </button>
     </div>
   </div>
 
   <!-- ========== SCREEN: RESULTS ========== -->
   <div id="screen-results" class="screen">
     <div class="results-container">
-      <h1 class="results-title">🏆 Final Results</h1>
+      <h1 class="results-title">🎉 Final Results</h1>
 
       <!-- Podium -->
       <div class="podium" id="podium"></div>
 
-      <!-- Full Leaderboard -->
-      <h2 class="section-title">Leaderboard</h2>
-      <div class="full-leaderboard" id="full-leaderboard"></div>
+      <!-- Two leaderboards side by side -->
+      <div class="dual-leaderboards">
+
+        <div class="lb-panel">
+          <h2 class="lb-panel-title">🎯 What's in the Scoop?</h2>
+          <p class="lb-panel-sub">Ranked by ingredient score</p>
+          <div class="full-leaderboard" id="full-leaderboard"></div>
+        </div>
+
+        <div class="lb-panel">
+          <h2 class="lb-panel-title">🍦 Popular Flavor</h2>
+          <p class="lb-panel-sub">Most-loved ice cream</p>
+          <div id="vote-tally" class="vote-tally"></div>
+        </div>
+
+      </div>
 
       <!-- Answer Reveals (hidden until host reveals) -->
-      <h2 class="section-title" id="reveals-title">🍦 The Secret Ingredients</h2>
+      <h2 class="section-title" id="reveals-title">🔍 The Secret Ingredients</h2>
       <div class="reveals" id="reveals"></div>
 
       <!-- Play Again -->
