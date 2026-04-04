@@ -109,6 +109,31 @@ body {
   z-index: 1000;
 }
 
+/* --- Fireworks Canvas --- */
+#fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* --- Click sparkle particles --- */
+.click-spark {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  animation: sparkShoot 0.65s ease-out forwards;
+}
+
+@keyframes sparkShoot {
+  0%   { transform: translate(-50%,-50%) translate(0,0) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+}
+
 /* --- Screens --- */
 .screen {
   display: none;

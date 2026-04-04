@@ -20,6 +20,146 @@ var state = {
 };
 
 // ---- INIT ----
+// ============================================================
+// BIRTHDAY FIREWORKS — auto-launching canvas fireworks
+// ============================================================
+(function() {
+  var canvas = document.getElementById('fireworks-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var COLORS = ['#E8B800','#ff6b9d','#4ecdc4','#ff9f43','#c44dff','#ff6b6b','#a8edea','#ffeaa7','#fd79a8'];
+
+  var rockets = [];
+  var particles = [];
+
+  function launchRocket() {
+    var color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    rockets.push({
+      x:  canvas.width * (0.15 + Math.random() * 0.7),
+      y:  canvas.height,
+      tx: canvas.width * (0.15 + Math.random() * 0.7),
+      ty: canvas.height * (0.08 + Math.random() * 0.38),
+      color: color,
+      speed: 9 + Math.random() * 7,
+      trail: []
+    });
+  }
+
+  function explode(x, y, color) {
+    var n = 70 + Math.floor(Math.random() * 50);
+    for (var i = 0; i < n; i++) {
+      var angle = (Math.PI * 2 * i) / n + (Math.random() - 0.5) * 0.4;
+      var spd   = 1.5 + Math.random() * 5;
+      var hue   = (Math.random() < 0.3) ? COLORS[Math.floor(Math.random() * COLORS.length)] : color;
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        color: hue,
+        life: 1,
+        decay: 0.010 + Math.random() * 0.014,
+        gravity: 0.055,
+        size: 1.5 + Math.random() * 2.5
+      });
+    }
+    // Sparkle ring
+    for (var j = 0; j < 12; j++) {
+      var a2 = (Math.PI * 2 * j) / 12;
+      particles.push({ x:x, y:y, vx: Math.cos(a2)*7, vy: Math.sin(a2)*7,
+        color:'#ffffff', life:1, decay:0.06, gravity:0.02, size:1.5 });
+    }
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Rockets
+    for (var i = rockets.length - 1; i >= 0; i--) {
+      var r = rockets[i];
+      var dx = r.tx - r.x, dy = r.ty - r.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < r.speed + 2) {
+        explode(r.x, r.y, r.color);
+        rockets.splice(i, 1);
+      } else {
+        r.x += (dx / dist) * r.speed;
+        r.y += (dy / dist) * r.speed;
+        // draw trail
+        r.trail.push({x: r.x, y: r.y});
+        if (r.trail.length > 14) r.trail.shift();
+        for (var t = 0; t < r.trail.length; t++) {
+          var alpha = (t / r.trail.length) * 0.7;
+          ctx.beginPath();
+          ctx.arc(r.trail[t].x, r.trail[t].y, 1.5, 0, Math.PI*2);
+          ctx.fillStyle = r.color;
+          ctx.globalAlpha = alpha;
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, 2.5, 0, Math.PI*2);
+        ctx.fillStyle = '#fff';
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // Particles
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.x  += p.vx; p.y  += p.vy;
+      p.vy += p.gravity;
+      p.vx *= 0.97; p.vy *= 0.97;
+      p.life -= p.decay;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.life * p.life; // quadratic fade
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  tick();
+
+  // Auto-launch every 2.8 seconds; stagger first few
+  launchRocket();
+  setTimeout(launchRocket, 800);
+  setTimeout(launchRocket, 1600);
+  setInterval(launchRocket, 2800);
+})();
+
+// ============================================================
+// CLICK SPARKLES — burst of color particles on every tap/click
+// ============================================================
+(function() {
+  var SPARK_COLORS = ['#E8B800','#ff6b9d','#4ecdc4','#ff9f43','#c44dff','#ff6b6b'];
+  document.addEventListener('click', function(e) {
+    for (var i = 0; i < 18; i++) {
+      var el = document.createElement('div');
+      el.className = 'click-spark';
+      el.style.left = e.clientX + 'px';
+      el.style.top  = e.clientY + 'px';
+      el.style.background = SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)];
+      var angle = Math.random() * Math.PI * 2;
+      var dist  = 35 + Math.random() * 65;
+      el.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
+      el.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
+      document.body.appendChild(el);
+      setTimeout(function(node) { node.remove(); }, 700, el);
+    }
+  });
+})();
+
 // ---- BIRTHDAY EMOJI RAIN ----
 (function() {
   var emojis = ['🎈','🎉','🎊','🎂','✨','🍦','⭐','🌟','🎁','🥳'];
