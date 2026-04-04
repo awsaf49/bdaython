@@ -499,11 +499,93 @@ function showTransition() {
 
   setTimeout(function() {
     if (isLast) {
-      showResults();
+      showFavoriteVote();
     } else {
       showQuestion(nextQ);
     }
   }, 1800);
+}
+
+// ---- FAVOURITE VOTE ----
+var favoriteSelected = null;
+
+function showFavoriteVote() {
+  favoriteSelected = null;
+  var grid = document.getElementById('fav-grid');
+  var html = '';
+  for (var i = 0; i < QUIZ_DATA.length; i++) {
+    var q = QUIZ_DATA[i];
+    html += '<div class="fav-card" data-index="' + i + '" onclick="selectFavorite(this,' + i + ')">'
+      + '<img src="' + q.image + '" alt="' + escapeHtml(q.name) + '" class="fav-img">'
+      + '<div class="fav-name">' + escapeHtml(q.name) + '</div>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
+  document.getElementById('btn-vote').disabled = true;
+  document.getElementById('btn-vote').querySelector('span').textContent = 'Cast My Vote!';
+
+  // Live vote tally
+  db.ref('sessions/' + SESSION_ID + '/votes').on('value', function(snap) {
+    renderVoteTally(snap.val() || {});
+  });
+
+  showScreen('screen-favorite');
+}
+
+function selectFavorite(el, index) {
+  favoriteSelected = index;
+  var cards = document.querySelectorAll('.fav-card');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('selected');
+  el.classList.add('selected');
+  document.getElementById('btn-vote').disabled = false;
+}
+
+function submitFavorite() {
+  if (favoriteSelected === null) return;
+  db.ref('sessions/' + SESSION_ID + '/votes/' + state.playerId).set(favoriteSelected);
+  db.ref('players/' + SESSION_ID + '/' + state.playerId + '/favorite').set(favoriteSelected);
+
+  var btn = document.getElementById('btn-vote');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Voted! 🎉';
+
+  setTimeout(showResults, 1500);
+}
+
+function renderVoteTally(votes) {
+  var container = document.getElementById('vote-tally');
+  if (!container) return;
+
+  var counts = [];
+  for (var i = 0; i < QUIZ_DATA.length; i++) counts[i] = 0;
+  var playerIds = Object.keys(votes);
+  for (var j = 0; j < playerIds.length; j++) {
+    var v = votes[playerIds[j]];
+    if (typeof v === 'number' && counts[v] !== undefined) counts[v]++;
+  }
+
+  var items = QUIZ_DATA.map(function(q, i) { return { q: q, index: i, count: counts[i] }; });
+  items.sort(function(a, b) { return b.count - a.count; });
+
+  var total = playerIds.length || 1;
+  var rankEmojis = ['🥇', '🥈', '🥉'];
+  var html = '';
+
+  for (var k = 0; k < items.length; k++) {
+    var item = items[k];
+    var pct = Math.round((item.count / total) * 100);
+    html += '<div class="vote-row">'
+      + '<span class="vote-rank">' + (rankEmojis[k] || (k + 1)) + '</span>'
+      + '<img class="vote-img" src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '">'
+      + '<div class="vote-info">'
+      + '<div class="vote-name">' + escapeHtml(item.q.name) + '</div>'
+      + '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>'
+      + '</div>'
+      + '<span class="vote-count">' + item.count + '</span>'
+      + '</div>';
+  }
+
+  container.innerHTML = html || '<div class="lb-empty">No votes yet...</div>';
 }
 
 // ---- RESULTS ----

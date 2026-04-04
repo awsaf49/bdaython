@@ -694,6 +694,143 @@ body {
   margin-bottom: 32px;
 }
 
+/* ========== FAVOURITE VOTE SCREEN ========== */
+.favorite-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 16px 100px;
+  text-align: center;
+}
+
+.fav-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.fav-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+.fav-grid {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.fav-card {
+  background: var(--card-bg);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  width: 145px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.fav-card:hover {
+  border-color: var(--poke-yellow);
+  transform: translateY(-4px);
+}
+
+.fav-card.selected {
+  border-color: var(--poke-yellow);
+  background: rgba(232,184,0,0.15);
+  box-shadow: 0 0 24px rgba(232,184,0,0.35);
+  transform: translateY(-6px);
+}
+
+.fav-img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.fav-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: white;
+  text-align: center;
+}
+
+.vote-results {
+  margin-top: 36px;
+  text-align: left;
+}
+
+.vote-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--poke-yellow);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.vote-tally {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vote-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.vote-rank { font-size: 1.4rem; min-width: 28px; }
+
+.vote-img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.vote-info { flex: 1; }
+
+.vote-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.vote-bar-wrap {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.vote-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--poke-yellow), #ff9f43);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+
+.vote-count {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--poke-yellow);
+  min-width: 24px;
+  text-align: right;
+}
+
 /* Podium */
 .podium {
   display: flex;

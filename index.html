@@ -186,6 +186,25 @@
     </div>
   </div>
 
+  <!-- ========== SCREEN: FAVOURITE VOTE ========== -->
+  <div id="screen-favorite" class="screen">
+    <div class="favorite-container">
+      <h2 class="fav-title">Which scoop was your favorite? 🍦</h2>
+      <p class="fav-subtitle">Vote for your top pick!</p>
+      <div class="fav-grid" id="fav-grid"></div>
+      <button id="btn-vote" class="btn-primary btn-submit" disabled onclick="submitFavorite()">
+        <span>Cast My Vote!</span>
+        <span class="btn-icon">🍦</span>
+      </button>
+      <div class="vote-results">
+        <h3 class="vote-title">📊 Community Favorites</h3>
+        <div id="vote-tally" class="vote-tally">
+          <div class="lb-empty">No votes yet...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== SCREEN: RESULTS ========== -->
   <div id="screen-results" class="screen">
     <div class="results-container">
