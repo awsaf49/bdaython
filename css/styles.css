@@ -685,54 +685,28 @@ body {
   margin: 0 auto;
 }
 
-/* Full-width section blocks for each leaderboard */
+/* Section heading wrapper — content keeps its own styling */
 .results-section {
-  background: var(--card-bg);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 18px;
-  padding: 22px 20px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .results-section-title {
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--poke-yellow);
+  text-shadow: 2px 2px 0 var(--poke-navy);
   margin-bottom: 4px;
 }
 
 .results-section-sub {
   font-size: 0.78rem;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-/* Score leaderboard rows inside section — flush */
+/* full-leaderboard inside section keeps its own white card style */
 .results-section .full-leaderboard {
-  background: none;
-  border: none;
-  padding: 0;
-  border-radius: 0;
-}
-
-/* Vote rows inside section — slightly inset */
-.results-section .vote-row {
-  background: rgba(255,255,255,0.05);
-  padding: 10px 12px;
-  border-radius: 10px;
-}
-
-.results-section .vote-img {
-  width: 52px;
-  height: 52px;
-}
-
-.results-section .vote-name {
-  font-size: 1rem;
-}
-
-.results-section .vote-count {
-  font-size: 1.3rem;
+  margin-bottom: 0;
 }
 
 .results-title {
@@ -773,7 +747,7 @@ body {
 }
 
 .fav-card {
-  background: var(--card-bg);
+  background: var(--bg-card);
   border: 2px solid rgba(255,255,255,0.1);
   border-radius: 18px;
   padding: 18px 14px;
@@ -798,11 +772,20 @@ body {
   transform: translateY(-6px);
 }
 
-.fav-img {
+.fav-img-wrap {
   width: 150px;
   height: 150px;
-  object-fit: contain;
-  border-radius: 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--poke-navy);
+  background: rgba(0,58,112,0.06);
+  flex-shrink: 0;
+}
+
+.fav-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .fav-name {
@@ -812,73 +795,69 @@ body {
   text-align: center;
 }
 
-.vote-results {
-  margin-top: 36px;
-  text-align: left;
+/* ---- Vote Podium (Popular Flavor vertical bars) ---- */
+.vote-podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 8px 0 0;
+  min-height: 220px;
+  background: rgba(255,255,255,0.92);
+  border: 3px solid var(--poke-navy);
+  border-radius: 18px;
+  box-shadow: 4px 4px 0 var(--poke-navy);
+  padding: 20px 16px 0;
 }
 
-.vote-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--poke-yellow);
-  margin-bottom: 14px;
-  text-align: center;
-}
-
-.vote-tally {
+.vote-pod-place {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.vote-row {
-  display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 10px 14px;
+  gap: 6px;
+  flex: 1;
+  max-width: 160px;
 }
 
-.vote-rank { font-size: 1.4rem; min-width: 28px; }
-
-.vote-img {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-.vote-info { flex: 1; }
-
-.vote-name {
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: white;
-  margin-bottom: 5px;
-}
-
-.vote-bar-wrap {
-  background: rgba(255,255,255,0.1);
-  border-radius: 4px;
-  height: 7px;
+.vote-pod-img-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
   overflow: hidden;
+  border: 3px solid var(--poke-navy);
+  background: rgba(0,58,112,0.06);
+  flex-shrink: 0;
 }
 
-.vote-bar {
+.vote-pod-img {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--poke-yellow), #ff9f43);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-  min-width: 4px;
+  object-fit: cover;
 }
 
-.vote-count {
+.vote-pod-name {
   font-weight: 800;
-  font-size: 1.15rem;
-  color: var(--poke-yellow);
-  min-width: 24px;
-  text-align: right;
+  font-size: 0.82rem;
+  color: var(--poke-navy);
+  text-align: center;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vote-pod-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--poke-red);
+}
+
+.vote-pod-bar {
+  width: 70%;
+  border-radius: 8px 8px 0 0;
+  transition: height 0.6s ease;
+  min-height: 8px;
+  align-self: flex-end;
 }
 
 /* Podium */

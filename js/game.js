@@ -516,7 +516,7 @@ function showFavoriteVote() {
   for (var i = 0; i < QUIZ_DATA.length; i++) {
     var q = QUIZ_DATA[i];
     html += '<div class="fav-card" data-index="' + i + '" onclick="selectFavorite(this,' + i + ')">'
-      + '<img src="' + q.image + '" alt="' + escapeHtml(q.name) + '" class="fav-img">'
+      + '<div class="fav-img-wrap"><img src="' + q.image + '" alt="' + escapeHtml(q.name) + '" class="fav-img"></div>'
       + '<div class="fav-name">' + escapeHtml(q.name) + '</div>'
       + '</div>';
   }
@@ -555,28 +555,39 @@ function renderVoteTally(votes) {
     if (typeof v === 'number' && counts[v] !== undefined) counts[v]++;
   }
 
-  var items = QUIZ_DATA.map(function(q, i) { return { q: q, index: i, count: counts[i] }; });
+  // Sort by votes descending
+  var items = QUIZ_DATA.map(function(q, i) { return { q: q, count: counts[i] }; });
   items.sort(function(a, b) { return b.count - a.count; });
 
-  var total = playerIds.length || 1;
-  var rankEmojis = ['🥇', '🥈', '🥉'];
-  var html = '';
+  var maxCount = items[0].count || 0;
+  var maxBarPx = 120; // tallest bar in pixels
 
-  for (var k = 0; k < items.length; k++) {
-    var item = items[k];
-    var pct = Math.round((item.count / total) * 100);
-    html += '<div class="vote-row">'
-      + '<span class="vote-rank">' + (rankEmojis[k] || (k + 1)) + '</span>'
-      + '<img class="vote-img" src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '">'
-      + '<div class="vote-info">'
-      + '<div class="vote-name">' + escapeHtml(item.q.name) + '</div>'
-      + '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>'
-      + '</div>'
-      + '<span class="vote-count">' + item.count + '</span>'
+  // Podium order: [2nd, 1st, 3rd] so winner is in the center
+  var order = [1, 0, 2];
+  var barColors = [
+    'linear-gradient(180deg, rgba(255,215,0,0.65), rgba(255,215,0,0.2))',      // gold
+    'linear-gradient(180deg, rgba(192,192,192,0.6), rgba(192,192,192,0.15))',   // silver
+    'linear-gradient(180deg, rgba(205,127,50,0.6), rgba(205,127,50,0.15))'      // bronze
+  ];
+
+  var html = '<div class="vote-podium">';
+  for (var k = 0; k < order.length; k++) {
+    var idx = order[k]; // 0=1st,1=2nd,2=3rd rank
+    if (idx >= items.length) continue;
+    var item = items[idx];
+    var barPx = maxCount > 0 ? Math.max(14, Math.round((item.count / maxCount) * maxBarPx)) : 14;
+    var label = item.count === 1 ? '1 vote' : item.count + ' votes';
+
+    html += '<div class="vote-pod-place">'
+      + '<div class="vote-pod-img-wrap"><img src="' + item.q.image + '" alt="' + escapeHtml(item.q.name) + '" class="vote-pod-img"></div>'
+      + '<div class="vote-pod-name">' + escapeHtml(item.q.name) + '</div>'
+      + '<div class="vote-pod-count">' + label + '</div>'
+      + '<div class="vote-pod-bar" style="height:' + barPx + 'px;background:' + barColors[idx] + '"></div>'
       + '</div>';
   }
+  html += '</div>';
 
-  container.innerHTML = html || '<div class="lb-empty">No votes yet...</div>';
+  container.innerHTML = html;
 }
 
 // ---- RESULTS ----
