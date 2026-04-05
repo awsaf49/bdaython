@@ -39,39 +39,6 @@
   <!-- Floating birthday emojis -->
   <div id="emoji-rain"></div>
 
-  <!-- ========== HOW TO PLAY MODAL ========== -->
-  <div id="htp-overlay" class="modal-overlay hidden" onclick="closeHowToPlay()">
-    <div class="modal htp-modal" onclick="event.stopPropagation()">
-      <button class="modal-close" onclick="closeHowToPlay()">&times;</button>
-      <div class="modal-icon">📖</div>
-      <h2 class="modal-title">How to Play</h2>
-
-      <div class="htp-steps">
-        <div class="htp-step">
-          <div class="htp-num">1</div>
-          <div class="htp-text">🍦 <strong>Taste</strong> the ice cream on the table</div>
-        </div>
-        <div class="htp-step">
-          <div class="htp-num">2</div>
-          <div class="htp-text">☑️ <strong>Pick</strong> which ingredients you think are in it</div>
-        </div>
-        <div class="htp-step">
-          <div class="htp-num">3</div>
-          <div class="htp-text">⚡ <strong>Submit fast</strong> — faster = more bonus points</div>
-        </div>
-        <div class="htp-step">
-          <div class="htp-num">4</div>
-          <div class="htp-text">🏆 Most correct answers wins!</div>
-        </div>
-      </div>
-
-      <button class="btn-primary" onclick="closeHowToPlay()" style="margin-top:20px;width:100%">
-        <span>Got it, let's go!</span>
-        <span class="btn-icon">🍦</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ========== PASSWORD MODAL ========== -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal">
@@ -111,12 +78,7 @@
       </div>
       <h1 class="game-title">What's in the Scoop?</h1>
       <p class="game-subtitle">Taste the ice cream &amp; guess the ingredients!</p>
-      <div class="how-to-play">
-        <div class="how-step">🍦 Pick which ingredients you think are in each scoop</div>
-        <div class="how-step">✅ <strong>+200</strong> per correct pick &nbsp;|&nbsp; ❌ <strong>−100</strong> per wrong pick</div>
-        <div class="how-step">⚡ Answer faster for a small speed bonus — up to <strong>+100</strong> pts!</div>
-      </div>
-      <button class="btn-how-to-play" onclick="openHowToPlay()">📖 How to Play</button>
+
       <div class="join-form">
         <input
           type="text"
