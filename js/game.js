@@ -356,7 +356,7 @@ function calculateScore(selected, correct, timeTaken) {
     else wrongPicks++;
   }
   var baseScore = (correctPicks * SCORING.CORRECT_PICK) + (wrongPicks * SCORING.WRONG_PICK);
-  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * 2));
+  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * SCORING.TIME_BONUS_MAX / 300));
   return Math.max(0, baseScore + timeBonus);
 }
 
@@ -585,13 +585,16 @@ function updateSubmitButton() {
 }
 
 // ---- TIMER ----
+var TIMER_DURATION = 300; // 5 minutes in seconds
+
 function startTimer() {
   stopTimer();
   state.questionStartTime = Date.now();
-  updateTimerDisplay(0);
+  updateTimerDisplay(TIMER_DURATION);
   state.timerInterval = setInterval(function() {
     var elapsed = Math.floor((Date.now() - state.questionStartTime) / 1000);
-    updateTimerDisplay(elapsed);
+    var remaining = Math.max(0, TIMER_DURATION - elapsed);
+    updateTimerDisplay(remaining);
   }, 1000);
 }
 
@@ -605,8 +608,10 @@ function stopTimer() {
 function updateTimerDisplay(seconds) {
   var mins = Math.floor(seconds / 60);
   var secs = seconds % 60;
-  document.getElementById('timer-display').textContent =
-    mins + ':' + (secs < 10 ? '0' : '') + secs;
+  var el = document.getElementById('timer-display');
+  el.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  // Turn red when under 60 seconds
+  el.style.color = seconds <= 60 ? '#ff4d4d' : '';
 }
 
 // ---- SUBMIT — score calculated instantly client-side ----

@@ -11,9 +11,9 @@ var QUIZ_DATA = [
     tagline: "A brooding scoop from the shadows...",
     image: "images/dark-knight.png",
     options: [
-      "Coconut Milk", "Chocolate Bar", "Vegan Butter", "Salt",
-      "Cinnamon", "Vanilla Extract", "Cocoa Powder", "Heavy Cream",
-      "Sugar", "Coffee", "Condensed Milk", "Maple Syrup"
+      "Coconut Milk", "Almond Milk", "Oat Milk", "Chocolate Bar", "Vegan Butter", "Salt",
+      "Cinnamon", "Vanilla Extract", "Cocoa Powder", "Coffee", "Maple Syrup", "Honey",
+      "Eggs"
     ],
     correct: ["Coconut Milk", "Chocolate Bar", "Vegan Butter", "Salt", "Cinnamon", "Vanilla Extract"]
   },
@@ -23,21 +23,19 @@ var QUIZ_DATA = [
     tagline: "The fairest scoop of them all...",
     image: "images/snow-white.png",
     options: [
-      "Coconut Milk", "Salt", "Vanilla Extract", "Saffron",
-      "Oreo", "Heavy Cream", "Sugar", "Vegan Butter",
-      "Cinnamon", "Condensed Milk", "Almond Milk", "Honey"
+      "Coconut Milk", "Almond Milk", "Oat Milk", "Salt", "Vanilla Extract", "Saffron",
+      "Oreo", "Vegan Butter", "Cinnamon", "Honey", "Maple Syrup"
     ],
     correct: ["Coconut Milk", "Salt", "Vanilla Extract", "Saffron", "Oreo"]
   },
   {
     id: 3,
     name: "Spongebob",
-    tagline: "Who lives in a pineapple under the sea...",
+    tagline: "The sunshine above the sea...",
     image: "images/sponge-bob.png",
     options: [
-      "Oat Milk", "Salt", "Vanilla Extract", "Mango",
-      "Lime", "Coconut Milk", "Sugar", "Coconut Cream",
-      "Passion Fruit", "Lemon", "Condensed Milk", "Vegan Butter"
+      "Coconut Milk", "Almond Milk", "Oat Milk", "Salt", "Vanilla Extract", "Mango",
+      "Lime", "Vegan Butter", "Orange", "Lemon"
     ],
     correct: ["Oat Milk", "Salt", "Vanilla Extract", "Mango", "Lime"]
   }
