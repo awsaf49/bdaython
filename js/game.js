@@ -356,7 +356,7 @@ function calculateScore(selected, correct, timeTaken) {
     else wrongPicks++;
   }
   var baseScore = (correctPicks * SCORING.CORRECT_PICK) + (wrongPicks * SCORING.WRONG_PICK);
-  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * SCORING.TIME_BONUS_MAX / 180));
+  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * SCORING.TIME_BONUS_MAX / 60));
   return Math.max(0, baseScore + timeBonus);
 }
 
@@ -559,7 +559,7 @@ function showQuestion(index) {
 
   startTimer();
   showScreen('screen-game');
-  showToast('⏱️ 3 minutes on the clock!');
+  showToast('⏱️ 1 minute on the clock!');
 }
 
 function renderOptions(options) {
@@ -586,7 +586,7 @@ function updateSubmitButton() {
 }
 
 // ---- TIMER ----
-var TIMER_DURATION = 180; // 3 minutes in seconds
+var TIMER_DURATION = 60; // 1 minute in seconds
 
 function startTimer() {
   stopTimer();
@@ -620,7 +620,7 @@ function updateTimerDisplay(seconds) {
   var el = document.getElementById('timer-display');
   el.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
   // Turn red when under 60 seconds
-  el.style.color = seconds <= 60 ? '#ff4d4d' : '';
+  el.style.color = seconds <= 15 ? '#ff4d4d' : '';
 }
 
 // ---- SUBMIT — score calculated instantly client-side ----
