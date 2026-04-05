@@ -544,12 +544,13 @@ function showQuestion(index) {
   var q = QUIZ_DATA[index];
 
   document.getElementById('q-num').textContent = index + 1;
+  document.querySelector('.q-total').textContent = '/' + QUIZ_DATA.length;
   document.getElementById('ice-cream-img').src = q.image;
   document.getElementById('ice-cream-img').alt = q.name;
   document.getElementById('ice-cream-name').textContent = q.name;
   document.getElementById('ice-cream-tagline').textContent = q.tagline;
 
-  renderOptions(q.options);
+  renderOptions(shuffleArray(q.options));
 
   var submitBtn = document.getElementById('btn-submit');
   submitBtn.disabled = true;
@@ -923,6 +924,15 @@ function launchConfetti() {
 }
 
 // ---- HELPERS ----
+function shuffleArray(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
 function generateId() {
   return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
