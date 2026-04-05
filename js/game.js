@@ -356,7 +356,7 @@ function calculateScore(selected, correct, timeTaken) {
     else wrongPicks++;
   }
   var baseScore = (correctPicks * SCORING.CORRECT_PICK) + (wrongPicks * SCORING.WRONG_PICK);
-  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * SCORING.TIME_BONUS_MAX / 300));
+  var timeBonus = Math.max(0, SCORING.TIME_BONUS_MAX - Math.floor(timeTaken * SCORING.TIME_BONUS_MAX / 180));
   return Math.max(0, baseScore + timeBonus);
 }
 
@@ -559,6 +559,7 @@ function showQuestion(index) {
 
   startTimer();
   showScreen('screen-game');
+  showToast('⏱️ 3 minutes on the clock!');
 }
 
 function renderOptions(options) {
@@ -585,7 +586,7 @@ function updateSubmitButton() {
 }
 
 // ---- TIMER ----
-var TIMER_DURATION = 300; // 5 minutes in seconds
+var TIMER_DURATION = 180; // 3 minutes in seconds
 
 function startTimer() {
   stopTimer();
@@ -603,6 +604,14 @@ function stopTimer() {
     clearInterval(state.timerInterval);
     state.timerInterval = null;
   }
+}
+
+function showToast(msg) {
+  var el = document.getElementById('game-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2500);
 }
 
 function updateTimerDisplay(seconds) {
