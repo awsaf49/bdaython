@@ -39,6 +39,65 @@
   <!-- Floating birthday emojis -->
   <div id="emoji-rain"></div>
 
+  <!-- ========== HOW TO PLAY MODAL ========== -->
+  <div id="htp-overlay" class="modal-overlay hidden" onclick="closeHowToPlay()">
+    <div class="modal htp-modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeHowToPlay()">&times;</button>
+      <div class="modal-icon">📖</div>
+      <h2 class="modal-title">How to Play</h2>
+
+      <div class="htp-steps">
+        <div class="htp-step">
+          <div class="htp-num">1</div>
+          <div class="htp-text">
+            <strong>Taste the ice cream</strong> — grab a scoop from the table! 🍦
+          </div>
+        </div>
+        <div class="htp-step">
+          <div class="htp-num">2</div>
+          <div class="htp-text">
+            <strong>Enter your name</strong> and tap <em>Join the Scoop!</em>
+          </div>
+        </div>
+        <div class="htp-step">
+          <div class="htp-num">3</div>
+          <div class="htp-text">
+            <strong>Guess the ingredients</strong> — you'll see the ice cream's name and image. Pick <em>all</em> the ingredients you think are in it from the list. You can select multiple!
+          </div>
+        </div>
+        <div class="htp-step">
+          <div class="htp-num">4</div>
+          <div class="htp-text">
+            <strong>Submit fast</strong> — the quicker you answer, the bigger your speed bonus.
+          </div>
+        </div>
+        <div class="htp-step">
+          <div class="htp-num">5</div>
+          <div class="htp-text">
+            <strong>Repeat</strong> for all 3 ice creams, then vote for your favourite!
+          </div>
+        </div>
+        <div class="htp-step">
+          <div class="htp-num">6</div>
+          <div class="htp-text">
+            <strong>See the results</strong> — top 3 get the podium 🏆
+          </div>
+        </div>
+      </div>
+
+      <div class="htp-scoring">
+        <div class="htp-score-row"><span class="htp-score-good">✅ +200</span> per correct ingredient</div>
+        <div class="htp-score-row"><span class="htp-score-bad">❌ −100</span> per wrong ingredient</div>
+        <div class="htp-score-row"><span class="htp-score-bonus">⚡ +100</span> max speed bonus (answer in under 50 sec)</div>
+      </div>
+
+      <button class="btn-primary" onclick="closeHowToPlay()" style="margin-top:20px;width:100%">
+        <span>Got it, let's go!</span>
+        <span class="btn-icon">🍦</span>
+      </button>
+    </div>
+  </div>
+
   <!-- ========== PASSWORD MODAL ========== -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal">
@@ -83,6 +142,7 @@
         <div class="how-step">✅ <strong>+200</strong> per correct pick &nbsp;|&nbsp; ❌ <strong>−100</strong> per wrong pick</div>
         <div class="how-step">⚡ Answer faster for a small speed bonus — up to <strong>+100</strong> pts!</div>
       </div>
+      <button class="btn-how-to-play" onclick="openHowToPlay()">📖 How to Play</button>
       <div class="join-form">
         <input
           type="text"

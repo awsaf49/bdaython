@@ -248,6 +248,14 @@ function showScreen(screenId) {
 // HOST MODE — Password + Decryption
 // ========================================
 
+function openHowToPlay() {
+  document.getElementById('htp-overlay').classList.remove('hidden');
+}
+
+function closeHowToPlay() {
+  document.getElementById('htp-overlay').classList.add('hidden');
+}
+
 function openHostModal() {
   document.getElementById('modal-overlay').classList.remove('hidden');
   document.getElementById('host-password').focus();
