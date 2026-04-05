@@ -294,7 +294,30 @@ body {
   font-size: 1.05rem;
   font-weight: 500;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+}
+
+.how-to-play {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.how-step {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.88);
+  line-height: 1.5;
+}
+
+.how-step strong {
+  color: white;
 }
 
 .join-form {
