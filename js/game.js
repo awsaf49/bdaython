@@ -647,6 +647,7 @@ function submitAnswer() {
   }, 0);
 
   var updates = {};
+  updates['name']             = state.playerName;
   updates['picks/' + qKey]   = selected;
   updates['times/' + qKey]   = Math.round(timeTaken * 10) / 10;
   updates['scores/' + qKey]  = score;
