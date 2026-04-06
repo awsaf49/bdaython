@@ -17,7 +17,7 @@ function initLeaderboard(sessionId) {
       return;
     }
 
-    // Convert to sorted array
+    // Convert to sorted array, excluding host/organizer
     cachedPlayers = Object.entries(data).map(function(entry) {
       var id = entry[0];
       var p = entry[1];
@@ -28,6 +28,8 @@ function initLeaderboard(sessionId) {
         currentQuestion: p.currentQuestion || 0,
         joinedAt: p.joinedAt || 0
       };
+    }).filter(function(p) {
+      return EXCLUDED_NAMES.indexOf(p.name) < 0;
     });
 
     // Sort: highest score first, then earliest joinedAt for ties

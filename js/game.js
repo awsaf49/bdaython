@@ -4,6 +4,8 @@
 // password can decrypt them.
 // ============================================
 
+var EXCLUDED_NAMES = ['Awsaf'];
+
 // ---- STATE ----
 var state = {
   playerId: null,
@@ -327,10 +329,12 @@ function watchAndScoreSubmissions() {
 
     Object.keys(data).forEach(function(id) {
       var p = data[id];
+      var pName = p.name || 'Anonymous';
+      if (EXCLUDED_NAMES.indexOf(pName) >= 0) return;
       if ((p.currentQuestion || 0) >= QUIZ_DATA.length) finished++;
       players.push({
         id: id,
-        name: p.name || 'Anonymous',
+        name: pName,
         totalScore: p.totalScore || 0,
         currentQuestion: p.currentQuestion || 0,
         joinedAt: p.joinedAt || 0,
